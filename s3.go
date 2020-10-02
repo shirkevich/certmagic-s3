@@ -3,7 +3,12 @@ package certmagic_s3
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"time"
+
 	"github.com/bsm/redislock"
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/certmagic"
@@ -11,9 +16,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"go.uber.org/zap"
-	"io/ioutil"
-	"strings"
-	"time"
 )
 
 type S3 struct {
@@ -52,10 +54,11 @@ func (s3 *S3) Provision(context caddy.Context) error {
 
 	// Redis Client
 	s3.RedisClient = redis.NewClient(&redis.Options{
-		Network:  "tcp",
-		Addr:     s3.RedisAddress,
-		Password: s3.RedisPassword,
-		DB:       s3.RedisDB,
+		Network:   "tcp",
+		Addr:      s3.RedisAddress,
+		Password:  s3.RedisPassword,
+		DB:        s3.RedisDB,
+		TLSConfig: &tls.Config{},
 	})
 	s3.RedisLocker = redislock.New(s3.RedisClient)
 	s3.RedisLocks = make(map[string]*redislock.Lock)
